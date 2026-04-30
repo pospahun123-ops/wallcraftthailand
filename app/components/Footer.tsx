@@ -140,7 +140,7 @@ export default function Footer() {
               <a href="#" className="w-10 h-10 lg:w-8 lg:h-8 rounded-full bg-white/5 flex items-center justify-center text-[#c2bfb6] hover:bg-[#B08038] hover:text-white transition-all">
                 <FaInstagram className="text-[30px] lg:text-[16px]" />
               </a>
-              <a href="https://qr-official.line.me/gs/M_806rnqui_BW.png?oat_content=qr" className="w-10 h-10 lg:w-8 lg:h-8 rounded-full bg-white/5 flex items-center justify-center text-[#c2bfb6] hover:bg-[#B08038] hover:text-white transition-all">
+              <a href="https://lin.ee/qIS21zi" className="w-10 h-10 lg:w-8 lg:h-8 rounded-full bg-white/5 flex items-center justify-center text-[#c2bfb6] hover:bg-[#B08038] hover:text-white transition-all">
                 <FaLine className="text-[30px] lg:text-[16px]" />
               </a>
             </div>
