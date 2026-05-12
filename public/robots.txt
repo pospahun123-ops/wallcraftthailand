@@ -2,13 +2,23 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /_next/
-Disallow: /search # 👈 สำคัญมาก! ป้องกันบอทหลงทางในช่องค้นหาจนเกิด Infinite Loop
+Disallow: /search 
 Crawl-delay: 2
 
-# 🚫 บล็อกบอทสูบข้อมูล (กินแบนด์วิดท์ฟรี แต่ไม่ช่วยเรื่อง SEO)
+# 🚫 บล็อก AI Bots ตัวสูบแบนด์วิธ (อิงจากกราฟ Vercel)
+User-agent: claude-searchbot
+Disallow: /
+User-agent: oai-searchbot
+Disallow: /
+User-agent: chatgpt-user
+Disallow: /
+User-agent: Applebot
+Disallow: /
+
+# 🚫 บล็อกบอท SEO (กินแบนด์วิธฟรี ไม่ช่วยเรื่อง SEO)
 User-agent: SemrushBot
 Disallow: /
-User-agent: AhrefsBot
+User-agent: ahrefsbot
 Disallow: /
 User-agent: MJ12bot
 Disallow: /
