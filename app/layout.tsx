@@ -1,13 +1,17 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Prompt, Noto_Sans_Thai } from "next/font/google";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
-config.autoAddCss = false;
-export const dynamic = 'force-dynamic';
+import NextTopLoader from 'nextjs-toploader'; // นำเข้าตัวโหลดดิ้งบาร์
 import "./globals.css";
 
 import ConditionalNavbar from "./components/Navbar";
 import ConditionalFooter from "./components/ConditionalFooter";
+
+// ย้ายคำสั่งตั้งค่ามาไว้ตรงนี้ครับ (หลังจาก import ทุกอย่างเสร็จหมดแล้ว)
+config.autoAddCss = false;
+export const dynamic = 'force-dynamic';
 
 const prompt = Prompt({
   subsets: ["thai", "latin"],
@@ -37,13 +41,20 @@ export default function RootLayout({
     <html lang="en" className={`${prompt.variable} ${notoSansThai.variable}`}>
       <body className={`antialiased noise font-sans text-[#808080]`}>
         
-        {/* ส่วนหัว (จะซ่อนอัตโนมัติในหน้า login/register) */}
-        <ConditionalNavbar />
+        {/* แถบโหลดดิ้งสีทองตอนเปลี่ยนหน้า */}
+        <NextTopLoader 
+          color="#c6a87c"          
+          initialPosition={0.08}   
+          crawlSpeed={200}
+          height={3}               
+          crawl={true}
+          showSpinner={false}      
+          easing="ease"
+          speed={200}
+        />
         
-        {/* เนื้อหาของแต่ละหน้า */}
+        <ConditionalNavbar />
         {children}
-
-        {/* ส่วนท้าย (จะซ่อนอัตโนมัติในหน้า login/register) */}
         <ConditionalFooter />
         
       </body>

@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import DetailCarousel from '../../components/DetailCarousel'; 
 import { supabase } from '@/app/lib/supabase';
 
-
 interface ProductVariant {
   pattern?: string;
   color?: string;
@@ -22,20 +21,19 @@ interface ProductVariant {
   description?: string;
 }
 
-interface ProductDetailClientProps {
-    
+interface ProductDetailClientProps {    
   product: any;
   variants: ProductVariant[];
   initialStyle?: string | null;
 }
 
 export default function ProductDetailClient({ product, variants, initialStyle }: ProductDetailClientProps) {
-  const filteredVariants = initialStyle 
-    ? variants.filter(v => (v.pattern || v.color) === initialStyle)
-    : variants;
   const router = useRouter();
-  const displayVariants = filteredVariants.length > 0 ? filteredVariants : variants;
 
+  // 1. 🔥 เอาการ Filter ออกไปเลย ให้ใช้ variants ทั้งหมดที่มี
+  const displayVariants = variants;
+
+  // 2. จัดกลุ่มข้อมูลเหมือนเดิม
   const groupedData: Record<string, Record<string, ProductVariant[]>> = {};
   displayVariants.forEach((v) => {
     const pName = v.pattern || v.color || 'Default';
@@ -46,7 +44,19 @@ export default function ProductDetailClient({ product, variants, initialStyle }:
   });
 
   const patterns = Object.keys(groupedData).sort();
-  const [selectedPattern, setSelectedPattern] = useState(patterns[0]);
+
+  // 3. 🔥 ตั้งค่าเริ่มต้นให้วิ่งไปหาตัวที่เรากดเลือกมา (initialStyle)
+  let defaultPattern = patterns.length > 0 ? patterns[0] : '';
+  if (initialStyle) {
+      // ค้นหาว่าในคอลเลกชันนี้ มี pattern ที่ตรงกับที่กดมาไหม
+      const foundPattern = patterns.find(p => p === initialStyle);
+      if (foundPattern) {
+          defaultPattern = foundPattern; // ถ้ามี ให้เซ็ตเป็นตัวนี้เลย
+      }
+  }
+
+  // 4. กำหนด State เริ่มต้นตาม Default Pattern ที่หาได้
+  const [selectedPattern, setSelectedPattern] = useState(defaultPattern);
 
   const currentFilms = selectedPattern ? groupedData[selectedPattern] ?? {} : {};
   const filmOptions = Object.keys(currentFilms);
@@ -59,6 +69,7 @@ export default function ProductDetailClient({ product, variants, initialStyle }:
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(firstVariant);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // useEffect ต่างๆ ปล่อยไว้เหมือนเดิมครับ
   useEffect(() => {
     if (selectedPattern && groupedData[selectedPattern]) {
       const films = Object.keys(groupedData[selectedPattern]);
@@ -81,10 +92,8 @@ export default function ProductDetailClient({ product, variants, initialStyle }:
     }
   }, [selectedFilm]);
 
-  // 1. Setup State
   const [isSaved, setIsSaved] = useState(false);
 
-  // 2. Check status on load (using Primary Supabase)
   useEffect(() => {
     const checkStatus = async () => {
       if (!supabase) return;
@@ -104,7 +113,6 @@ export default function ProductDetailClient({ product, variants, initialStyle }:
     checkStatus();
   }, [selectedVariant?.sku]);
 
-  // 3. Toggle Save (Writing to Primary Supabase)
   const handleToggleSave = async () => {
     if (!supabase) return alert("Supabase is not configured.");
 
@@ -130,7 +138,7 @@ export default function ProductDetailClient({ product, variants, initialStyle }:
       if (!error) setIsSaved(true);
     }
   };
-  // 🔥 2. เตรียมข้อมูลสำหรับส่งให้ Carousel (แปลง patterns เป็น object ที่มี name และ image)
+
   const carouselItems = patterns.map(p => {
       const representFilm = Object.keys(groupedData[p])[0];
       const representImg = groupedData[p][representFilm][0].variant_image;
@@ -145,23 +153,22 @@ export default function ProductDetailClient({ product, variants, initialStyle }:
         
         {/* Back Button */}
         <button
-  onClick={() => {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.push("/");
-    }
-  }}
-  className="inline-flex items-center text-zinc-400 hover:text-[#c6a87c] mb-8 transition-colors text-sm font-bold"
->
-  <FaChevronLeft className="mr-2 text-xs" />
-  กลับหน้าก่อนหน้า
-</button>
+          onClick={() => {
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/");
+            }
+          }}
+          className="inline-flex items-center text-zinc-400 hover:text-[#c6a87c] mb-8 transition-colors text-sm font-bold"
+        >
+          <FaChevronLeft className="mr-2 text-xs" />
+          กลับหน้าก่อนหน้า
+        </button>
 
         <div className="flex flex-col lg:flex-row gap-16 items-start">
           
-          
-          {/* Left: Main Image - Only sticky on large screens (desktop) */}
+          {/* Left: Main Image */}
           <div className="w-full lg:w-1/2 lg:sticky lg:top-32">
             <div className="bg-[#1a1a1a] rounded-sm border border-white/5 aspect-square flex items-center justify-center relative overflow-hidden shadow-xl">
                <img 
@@ -188,8 +195,7 @@ export default function ProductDetailClient({ product, variants, initialStyle }:
                 STYLE: <span className="text-white ml-2">{selectedPattern}</span>
               </h4>
               
-              {/* 🔥 3. แทนที่ Grid เดิม ด้วย Carousel ใหม่ */}
-              <div className="w-full max-w-[450px]"> {/* คุมความกว้างไม่ให้ยาวเกิน */}
+              <div className="w-full max-w-[450px]">
                   <DetailCarousel 
                       items={carouselItems} 
                       selectedItem={selectedPattern} 
@@ -250,20 +256,20 @@ export default function ProductDetailClient({ product, variants, initialStyle }:
               </div>
               <div className="text-zinc-500 text-xs mb-8 tracking-wider">SKU: <span className="text-white">{selectedVariant?.sku || '-'}</span></div>
   
-  <div className="space-y-3">
-    <button 
-      onClick={handleToggleSave}
-      className={`w-full py-4 text-sm font-bold tracking-widest uppercase transition-all duration-300 border ${
-        isSaved 
-          ? 'bg-[#c6a87c] text-white border-[#c6a87c]' 
-          : 'bg-transparent text-[#c6a87c] border-[#c6a87c]/30 hover:border-[#c6a87c]'
-      }`}
-    >
-      {isSaved ? 'SAVED' : '♡ SAVE TO FAVORITES'}
-    </button>
-  </div>
+              <div className="space-y-3">
+                <button 
+                  onClick={handleToggleSave}
+                  className={`w-full py-4 text-sm font-bold tracking-widest uppercase transition-all duration-300 border ${
+                    isSaved 
+                      ? 'bg-[#c6a87c] text-white border-[#c6a87c]' 
+                      : 'bg-transparent text-[#c6a87c] border-[#c6a87c]/30 hover:border-[#c6a87c]'
+                  }`}
+                >
+                  {isSaved ? 'SAVED' : '♡ SAVE TO FAVORITES'}
+                </button>
+              </div>
 
-              <button className="w-full bg-white text-black py-4 text-sm font-bold tracking-widest uppercase cursor-pointer hover:bg-[#c6a87c] hover:text-white transition-all duration-300">
+              <button className="w-full bg-white text-black py-4 mt-3 text-sm font-bold tracking-widest uppercase cursor-pointer hover:bg-[#c6a87c] hover:text-white transition-all duration-300">
                  Download
               </button>
             </section>
